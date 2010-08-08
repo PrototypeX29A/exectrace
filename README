@@ -1,0 +1,17 @@
+   ExecTrace is a linux only debugging tool.  It uses ptrace to track the
+   execution of a child program compiled with debugging info.  To use
+   ExecTrace you would do something similar to the following:
+
+     gcc testprog.c -o testprog -ggdb
+     exectrace ./testprog 
+  
+   and ExecTrace will generate a (big) file called "exec.log" which
+   contains the source lines of your program as it executes.  You may wish
+   to tail -f this file as the program is running (perhaps in another
+   window of your X session).  This can be useful when you have a program
+   that segfaults for no apparent reason and you want to know 1) where the 
+   segfault occured and 2) what code was run leading up to the segfault.     
+
+   This code is distributed under the GNU Public Licence (GPL) version 2.  
+   See http://www.gnu.org/ for further details of the GPL.  If you do not
+   have a web browser you can read the LICENSE file in this directory.
