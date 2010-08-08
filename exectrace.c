@@ -34,6 +34,7 @@
 bfd *bf;
 char lastline[1024];
 int verbose_flag=0;
+int resolve_flag=0;
 char *logfile = "exec.log";
 
 int get_opts(int argc, char **argv)
@@ -44,8 +45,9 @@ int get_opts(int argc, char **argv)
            static struct option long_options[] =
              {
                /* These options set a flag. */
-               {"verbose", no_argument, &verbose_flag, 1},
                {"logfile",  required_argument, 0, 'l'},
+               {"resolve", no_argument, &resolve_flag, 1},
+               {"verbose", no_argument, &verbose_flag, 1},
                {0, 0, 0, 0}
              };
            /* getopt_long stores the option index here. */
@@ -73,7 +75,10 @@ int get_opts(int argc, char **argv)
              case 'l':
                logfile = optarg;
                break;
-     	     
+     	    
+             case 'r':
+	       resolve_flag = 1;
+               break; 
 	     case 'v':
                verbose_flag = 1;
                break;
@@ -95,7 +100,7 @@ CONST char *functionname;
 unsigned int line;
 asection *p;
 static asymbol **syms=NULL;
-
+  FILE *f = 0;
   for (p = bf->sections; p != NULL; p = p->next) {
     /*printf("processing section %s vma %08X size %i\n",p->name,p->vma,p->_cooked_size); */
     if (src>=p->vma && src<=p->vma+p->size) {
@@ -104,10 +109,13 @@ static asymbol **syms=NULL;
                                &functionname, &line)) {
         static char theline[1024];
         int l;
-	FILE *f = fopen(filename,"r");
         sprintf(theline,"line %i in function %s of %s\n",line,functionname,filename);
         if (strncmp(theline,lastline,1024)) { 
           strncpy(lastline,theline,1024);
+          if (!resolve_flag) {
+            return theline;
+          } 
+          f = fopen(filename,"r");
   	  if (!f) {
 	    return theline;
 	  }
@@ -117,7 +125,6 @@ static asymbol **syms=NULL;
 	  strtok(theline,"\r\n");
           return theline;
         } 
-	if (f) fclose(f);
       }
     }
   }
@@ -157,7 +164,11 @@ void main(int argc,char **argv) {
   initfile(argv[optind]);
   if ((pid=fork())==0) {
     ptrace(PTRACE_TRACEME,0,0,0);
-    execvp(argv[optind],argv+optind);
+    if (execvp(argv[optind],argv+optind)<0)
+    {
+       fprintf(stderr, "Could not execute file\n"); 
+       exit(-1);
+    };
   }
   wait(&status);
   while (!WIFEXITED(status)) {
