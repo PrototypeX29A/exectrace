@@ -37,6 +37,13 @@ int verbose_flag = 0;
 int resolve_flag = 0;
 char *logfile = "exec.log";
 
+int 
+usage()
+{
+  printf("extrace [OPTIONS] program [programargs]\n");
+  exit(-1);
+}
+ 
 int
 get_opts (int argc, char **argv)
 {
@@ -88,6 +95,9 @@ get_opts (int argc, char **argv)
     default:
       abort ();
     }
+  }
+  if (optind >= argc) {
+    usage();
   }
 }
 
