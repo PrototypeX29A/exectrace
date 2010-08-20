@@ -175,7 +175,7 @@ main (int argc, char **argv)
   get_opts (argc, argv);
   log = fopen (logfile, "w");
   initfile (argv[optind]);
-  if ((pid = fork ()) == 0) {
+  if ((pid = vfork ()) == 0) {
     ptrace (PTRACE_TRACEME, 0, 0, 0);
     if (execvp (argv[optind], argv + optind) < 0) {
       fprintf (stderr, "Could not execute file\n");
